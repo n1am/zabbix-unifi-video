@@ -15,6 +15,7 @@ class UniFiNVR
     protected $apiKey;
     protected $lastRequest;
     protected $lastHeaders;
+    protected $exitCode;
     protected $lastData;
 
     /**
@@ -28,54 +29,33 @@ class UniFiNVR
         $this->apiKey = $apiKey;
         $this->lastRequest = null;
         $this->lastHeaders = null;
+        $this->exitCode = null;
         $this->lastData = null;
     }
 
-    /**
-     * @return string
-     */
-    public function getApiKey()
-    {
-        return $this->apiKey;
+    private function makeRequest($url) {
+        try {
+            $response = Httpful\Request::get($url)->send();
+            $this->lastRequest = $response->request;
+            $this->lastHeaders = $response->headers;
+            $this->exitCode = $response->code;
+            $this->lastData = $response->body;
+        } catch (Httpful\Exception\ConnectionErrorException $e) {
+            echo "Exception $e";
+            exit(1);
+        }
+        return ($this->lastData);
     }
 
-    /**
-     * @param string $apiKey
-     */
-    public function setApiKey(string $apiKey)
-    {
-        $this->apiKey = $apiKey;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl()
-    {
-        return $this->url;
-    }
-
-    /**
-     * @param string $url
-     */
-    public function setUrl(string $url)
-    {
-        $this->url = $url;
+    private function getServerInfo() {
+        return $this->makeRequest($this->url . '/api/2.0/server/' . '?apiKey=' . $this->apiKey);
     }
 
     /**
      * @return object|null
      */
     public function getAllCameras() {
-        try {
-           $response = Httpful\Request::get($this->url . '/api/2.0/camera?apiKey=' . $this->apiKey)->send();
-           $this->lastRequest = $response->request;
-           $this->lastHeaders = $response->headers;
-           $this->lastData = $response->body->data;
-        } catch (Httpful\Exception\ConnectionErrorException $e) {
-          echo "Exception $e";
-       }
-        return ($this->lastData);
+        return $this->makeRequest($this->url . '/api/2.0/camera/' . '?apiKey=' . $this->apiKey)->data;
     }
 
     /**
@@ -88,7 +68,6 @@ class UniFiNVR
             $dataItem = [];
             $dataItem['{#ID}'] = $camera->_id;
             $dataItem['{#NAME}'] = $camera->name;
-            $dataItem['{#MODEL}'] = $camera->model;
             $dataItem['{#IP}'] = $camera->host;
             $results['data'][] = $dataItem;
         }
@@ -98,16 +77,16 @@ class UniFiNVR
     /**
      * @param string $cameraId
      * @return string|null
+     * @throws \Exception
      */
     public function getLastRecord(string $cameraId) {
         $lastRecord = null;
-        try {
-            $response = Httpful\Request::get($this->url . '/api/2.0/camera/' . $cameraId . '?apiKey='
-                . $this->apiKey)->send();
-            $epoch = $response->body->data[0]->lastRecordingStartTime;
-            $lastRecord = DateTime::createFromFormat('U.u', $epoch/1000)->format('Y-m-d H:i:s');
-        } catch (Httpful\Exception\ConnectionErrorException $e) {
-            echo "Exception $e";
+        $response = $this->makeRequest($this->url . '/api/2.0/camera/' . $cameraId . '?apiKey=' . $this->apiKey);
+        if(isset($response) && ($this->exitCode == '200')) {
+            $epoch = $response->data[0]->lastRecordingStartTime;
+            $epoch = DateTime::createFromFormat('U.u', $epoch / 1000)->format('U');
+            $now = (new DateTime())->format('U');
+            $lastRecord = $now - $epoch;
         }
         return $lastRecord;
     }
@@ -118,13 +97,9 @@ class UniFiNVR
      */
     public function isCameraAlive(string $cameraId) {
         $state = null;
-        try {
-            $response = Httpful\Request::get($this->url . '/api/2.0/camera/' . $cameraId . '?apiKey='
-                . $this->apiKey)->send();
-            $state = $response->body->data[0]->state;
-        } catch (Httpful\Exception\ConnectionErrorException $e) {
-            echo "Exception $e";
-        }
+        $response = $this->makeRequest($this->url . '/api/2.0/camera/' . $cameraId . '?apiKey=' . $this->apiKey);
+        if(isset($response) && ($this->exitCode == '200'))
+            $state = $response->data[0]->state;
         return $state;
     }
 
@@ -132,29 +107,13 @@ class UniFiNVR
      * @return int|null
      */
     public function getFreeSpace() {
-        $space = null;
-        try {
-            $response = Httpful\Request::get($this->url . '/api/2.0/server/' . '?apiKey='
-                . $this->apiKey)->send();
-            $space = $response->body->data[0]->systemInfo->disk->freeKb;
-        } catch (Httpful\Exception\ConnectionErrorException $e) {
-            echo "Exception $e";
-        }
-        return $space;
+        return $this->getServerInfo()->data[0]->systemInfo->disk->freeKb;
     }
 
     /**
      * @return int|null
      */
     public function getUsedSpace() {
-        $space = null;
-        try {
-            $response = Httpful\Request::get($this->url . '/api/2.0/server/' . '?apiKey='
-                . $this->apiKey)->send();
-            $space = $response->body->data[0]->systemInfo->disk->usedKb;
-        } catch (Httpful\Exception\ConnectionErrorException $e) {
-            echo "Exception $e";
-        }
-        return $space;
+        return $this->getServerInfo()->data[0]->systemInfo->disk->usedKb;
     }
 }
