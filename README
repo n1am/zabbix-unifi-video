@@ -1,1 +1,12 @@
 #UNIFI VIDEO CONTROLLER ZABBIX INTEGRATION
+
+Example of config.json
+```
+{
+    "unifi": {
+         "host": "localhost",
+         "port": 7443,
+         "api" : "APIKEY"
+    }
+}
+```
