@@ -48,14 +48,14 @@ class UniFiNVR
     }
 
     private function getServerInfo() {
-        return $this->makeRequest($this->url . '/api/2.0/server/' . '?apiKey=' . $this->apiKey);
+        return $this->makeRequest($this->url . '/api/2.0/server' . '?apiKey=' . $this->apiKey);
     }
 
     /**
      * @return object|null
      */
     public function getAllCameras() {
-        return $this->makeRequest($this->url . '/api/2.0/camera/' . '?apiKey=' . $this->apiKey)->data;
+        return $this->makeRequest($this->url . '/api/2.0/camera' . '?apiKey=' . $this->apiKey)->data;
     }
 
     /**
