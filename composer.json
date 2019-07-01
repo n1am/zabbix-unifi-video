@@ -1,7 +1,23 @@
 {
+  "name": "digitalsystem/zabbix-unifi-video",
+  "description": "PHP Zabbix integration with Ubiquiti UniFi Video controller",
+  "version": "0.1",
+  "type": "library",
+  "keywords": ["zabbix", "unifi video controller","ubiquiti"],
+  "homepage": "https://www.digital-system.it",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Andrea Giacomin",
+      "email": "andrea@digital-system.it",
+      "homepage": "https://www.digital-system.it",
+      "role": "Developer"
+    }
+  ],
   "require": {
     "nategood/httpful": "0.2.*",
-    "hassankhan/config": "^2.0"
+    "hassankhan/config": "^2.0",
+    "ext-json": "*"
   },
 
   "autoload": {
