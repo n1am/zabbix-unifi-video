@@ -37,7 +37,11 @@ if ($argc > 1){
             break;
 
         case 'camera-lastrec':
-            $lastRec = (!isset($argv[2]) ? exit(1) : new UniFiNVR($url, $conf->get('unifi.api')))->getLastRecord($argv[2]);
+            try {
+                $lastRec = (!isset($argv[2]) ? exit(1) : new UniFiNVR($url, $conf->get('unifi.api')))->getLastRecord($argv[2]);
+            } catch (Exception $e) {
+                echo "$e";
+            }
             echo $lastRec;
             break;
     }

@@ -7,6 +7,7 @@
 
 namespace UniFiNVR;
 use DateTime;
+use Exception;
 use Httpful;
 
 class UniFiNVR
@@ -77,7 +78,7 @@ class UniFiNVR
     /**
      * @param string $cameraId
      * @return string|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function getLastRecord(string $cameraId) {
         $lastRecord = null;
