@@ -9,6 +9,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use UniFiNVR\UniFiNVR;
 use Noodlehaus\Config;
 
+
 try{
     $conf = Config::load(__DIR__ . '/config.json');
     $url = 'https://' . $conf->get('unifi.host') . ':' . $conf->get('unifi.port');
